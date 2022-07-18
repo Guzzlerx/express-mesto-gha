@@ -6,10 +6,10 @@ const cors = require("cors");
 const usersRouter = require("./routes/users");
 const cardsRouter = require("./routes/cards");
 
-const { PORT = 3000 } = process.env;
+const { PORT = 3000 } = process.env; // eslint-disable-line
 
 mongoose.connect("mongodb://localhost:27017/mestodb", {
-    useNewUrlParser: true,
+  useNewUrlParser: true,
 });
 
 const app = express();
@@ -20,11 +20,11 @@ app.use(bodyParser.json());
 app.use(cors());
 
 app.use((req, res, next) => {
-    req.user = {
-        _id: "62d411ef7ebeaa0ead6e8a0a",
-    };
+  req.user = {
+    _id: "62d411ef7ebeaa0ead6e8a0a",
+  };
 
-    next();
+  next();
 });
 app.use("/", usersRouter);
 app.use("/", cardsRouter);

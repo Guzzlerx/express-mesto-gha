@@ -1,13 +1,13 @@
 const Card = require("../models/card");
 const handleError = require("../utils/error");
 
-function getCards(req, res, next) {
+function getCards(req, res) {
     Card.find({})
         .then((cards) => res.status(200).send(cards))
         .catch((err) => handleError(err, res));
 }
 
-function createCard(req, res, next) {
+function createCard(req, res) {
     const { name, link } = req.body;
 
     Card.create({ name, link, owner: req.user })
@@ -15,15 +15,15 @@ function createCard(req, res, next) {
         .catch((err) => handleError(err, res));
 }
 
-function deleteCard(req, res, next) {
+function deleteCard(req, res) {
     const { cardId } = req.params;
 
     Card.findByIdAndRemove(cardId)
-        .then((cards) => res.send({ message: "Пост удалён" }))
+        .then(() => res.send({ message: "Пост удалён" }))
         .catch((err) => handleError(err, res));
 }
 
-function likeCard(req, res, next) {
+function likeCard(req, res) {
     const { cardId } = req.params;
 
     Card.findByIdAndUpdate(
@@ -35,7 +35,7 @@ function likeCard(req, res, next) {
         .catch((err) => handleError(err, res));
 }
 
-function dislikeCard(req, res, next) {
+function dislikeCard(req, res) {
     const { cardId } = req.params;
 
     Card.findByIdAndUpdate(

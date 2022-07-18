@@ -1,13 +1,13 @@
 const User = require("../models/user");
 const handleError = require("../utils/error");
 
-function getUsers(req, res, next) {
+function getUsers(req, res) {
     User.find({})
         .then((data) => res.status(200).send(data))
         .catch((err) => handleError(err, res));
 }
 
-function getUser(req, res, next) {
+function getUser(req, res) {
     const { userId } = req.params;
 
     User.findById(userId)
@@ -15,7 +15,7 @@ function getUser(req, res, next) {
         .catch((err) => handleError(err, res));
 }
 
-function createUser(req, res, next) {
+function createUser(req, res) {
     const { name, about, avatar } = req.body;
 
     User.create({ name, about, avatar })
@@ -23,7 +23,7 @@ function createUser(req, res, next) {
         .catch((err) => handleError(err, res));
 }
 
-function updateUserInfo(req, res, next) {
+function updateUserInfo(req, res) {
     const { name, about } = req.body;
 
     User.findByIdAndUpdate(
@@ -39,7 +39,7 @@ function updateUserInfo(req, res, next) {
         .catch((err) => handleError(err, res));
 }
 
-function updateUserAvatar(req, res, next) {
+function updateUserAvatar(req, res) {
     const { avatar } = req.body;
 
     User.findByIdAndUpdate(
