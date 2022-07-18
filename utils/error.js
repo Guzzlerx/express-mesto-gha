@@ -11,7 +11,7 @@ function handleError(err, res) {
         return;
     }
 
-    res.status(500).send({ message: "Что-то пошло не так." });
+    res.status(500).send({ message: "Что-то пошло не так" });
 }
 
 module.exports = handleError;
