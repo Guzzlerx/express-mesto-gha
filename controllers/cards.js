@@ -1,15 +1,18 @@
-const Card = require("../models/card");
+const Card = require('../models/card');
 const {
   validationErrorMessage,
   findErrorMessage,
   serverErrorMessage,
-} = require("../utils/error");
+  serverErrorStatusCode,
+  findErrorStatusCode,
+  validationErrorStatusCode,
+} = require('../utils/error');
 
 function getCards(req, res) {
   Card.find({})
     .then((cards) => res.status(200).send(cards))
     .catch(() => {
-      res.status(500).send(serverErrorMessage);
+      res.status(serverErrorStatusCode).send(serverErrorMessage);
     });
 }
 
@@ -19,12 +22,12 @@ function createCard(req, res) {
   Card.create({ name, link, owner: req.user })
     .then((card) => res.status(201).send(card))
     .catch((err) => {
-      if (err.name === "ValidationError") {
-        res.status(400).send(validationErrorMessage);
+      if (err.name === 'ValidationError') {
+        res.status(validationErrorStatusCode).send(validationErrorMessage);
         return;
       }
 
-      res.status(500).send(serverErrorMessage);
+      res.status(serverErrorStatusCode).send(serverErrorMessage);
     });
 }
 
@@ -32,20 +35,20 @@ function deleteCard(req, res) {
   const { cardId } = req.params;
 
   Card.findByIdAndRemove(cardId)
-    .then((card) => {
-      if (!card) {
-        res.status(404).send(findErrorMessage);
-        return;
-      }
-      res.send({ message: "Пост удалён" });
-    })
+    .orFail(new Error('Not found'))
+    .then(() => res.send({ message: 'Пост удалён' }))
     .catch((err) => {
-      if (err.name === "CastError") {
-        res.status(400).send(validationErrorMessage);
+      if (err.name === 'CastError') {
+        res.status(validationErrorStatusCode).send(validationErrorMessage);
         return;
       }
 
-      res.status(500).send(serverErrorMessage);
+      if (err.message === 'Not found') {
+        res.status(findErrorStatusCode).send(findErrorMessage);
+        return;
+      }
+
+      res.status(serverErrorStatusCode).send(serverErrorMessage);
     });
 }
 
@@ -57,21 +60,20 @@ function likeCard(req, res) {
     { $addToSet: { likes: req.user._id } }, // добавляем пользователя, если его еще там нет
     { new: true }
   )
-    .then((card) => {
-      if (!card) {
-        res.status(404).send(findErrorMessage);
-        return;
-      }
-
-      res.status(200).send(card);
-    })
+    .orFail(new Error('Not found'))
+    .then((card) => res.status(200).send(card))
     .catch((err) => {
-      if (err.name === "CastError") {
-        res.status(400).send(validationErrorMessage);
+      if (err.name === 'CastError') {
+        res.status(validationErrorStatusCode).send(validationErrorMessage);
         return;
       }
 
-      res.status(500).send(serverErrorMessage);
+      if (err.message === 'Not found') {
+        res.status(findErrorStatusCode).send(findErrorMessage);
+        return;
+      }
+
+      res.status(serverErrorStatusCode).send(serverErrorMessage);
     });
 }
 
@@ -83,20 +85,20 @@ function dislikeCard(req, res) {
     { $pull: { likes: req.user._id } }, // убрали пользователя
     { new: true }
   )
-    .then((card) => {
-      if (!card) {
-        res.status(404).send(findErrorMessage);
-        return;
-      }
-      res.status(200).send(card);
-    })
+    .orFail(new Error('Not found'))
+    .then((card) => res.status(200).send(card))
     .catch((err) => {
-      if (err.name === "CastError") {
-        res.status(400).send(validationErrorMessage);
+      if (err.name === 'CastError') {
+        res.status(validationErrorStatusCode).send(validationErrorMessage);
         return;
       }
 
-      res.status(500).send(serverErrorMessage);
+      if (err.message === 'Not found') {
+        res.status(findErrorStatusCode).send(findErrorMessage);
+        return;
+      }
+
+      res.status(serverErrorStatusCode).send(serverErrorMessage);
     });
 }
 
