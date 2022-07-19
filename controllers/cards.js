@@ -1,7 +1,7 @@
 const Card = require("../models/card");
 const {
   validationErrorMessage,
-  castErrorMessage,
+  findErrorMessage,
   serverErrorMessage,
 } = require("../utils/error");
 
@@ -32,10 +32,16 @@ function deleteCard(req, res) {
   const { cardId } = req.params;
 
   Card.findByIdAndRemove(cardId)
-    .then(() => res.send({ message: "Пост удалён" }))
+    .then((card) => {
+      if (!card) {
+        res.status(404).send(findErrorMessage);
+        return;
+      }
+      res.send({ message: "Пост удалён" });
+    })
     .catch((err) => {
       if (err.name === "CastError") {
-        res.status(404).send(castErrorMessage);
+        res.status(400).send(validationErrorMessage);
         return;
       }
 
@@ -51,15 +57,17 @@ function likeCard(req, res) {
     { $addToSet: { likes: req.user._id } }, // добавляем пользователя, если его еще там нет
     { new: true }
   )
-    .then((card) => res.status(200).send(card))
-    .catch((err) => {
-      if (err.name === "ValidationError") {
-        res.status(400).send(validationErrorMessage);
+    .then((card) => {
+      if (!card) {
+        res.status(404).send(findErrorMessage);
         return;
       }
 
+      res.status(200).send(card);
+    })
+    .catch((err) => {
       if (err.name === "CastError") {
-        res.status(404).send(castErrorMessage);
+        res.status(400).send(validationErrorMessage);
         return;
       }
 
@@ -75,15 +83,16 @@ function dislikeCard(req, res) {
     { $pull: { likes: req.user._id } }, // убрали пользователя
     { new: true }
   )
-    .then((card) => res.status(200).send(card))
-    .catch((err) => {
-      if (err.name === "ValidationError") {
-        res.status(400).send(validationErrorMessage);
+    .then((card) => {
+      if (!card) {
+        res.status(404).send(findErrorMessage);
         return;
       }
-
+      res.status(200).send(card);
+    })
+    .catch((err) => {
       if (err.name === "CastError") {
-        res.status(404).send(castErrorMessage);
+        res.status(400).send(validationErrorMessage);
         return;
       }
 

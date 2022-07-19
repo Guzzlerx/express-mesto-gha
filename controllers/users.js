@@ -1,7 +1,7 @@
 const User = require("../models/user");
 const {
   validationErrorMessage,
-  castErrorMessage,
+  findErrorMessage,
   serverErrorMessage,
 } = require("../utils/error");
 
@@ -19,14 +19,15 @@ function getUser(req, res) {
   User.findById(userId)
     .then((user) => {
       if (!user) {
-        res.status(404).send(castErrorMessage);
+        res.status(404).send(findErrorMessage);
         return;
       }
 
       res.status(200).send(user);
     })
     .catch((err) => {
-      if (err.name === "ValidationError") {
+      console.log(err.name);
+      if (err.name === "CastError") {
         res.status(400).send(validationErrorMessage);
         return;
       }
@@ -70,7 +71,7 @@ function updateUserInfo(req, res) {
       }
 
       if (err.name === "CastError") {
-        res.status(404).send(castErrorMessage);
+        res.status(404).send(findErrorMessage);
         return;
       }
 
@@ -98,7 +99,7 @@ function updateUserAvatar(req, res) {
       }
 
       if (err.name === "CastError") {
-        res.status(404).send(castErrorMessage);
+        res.status(404).send(findErrorMessage);
         return;
       }
 
