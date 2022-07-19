@@ -20,6 +20,7 @@ function getUser(req, res) {
     .then((user) => {
       if (!user) {
         res.status(404).send(castErrorMessage);
+        return;
       }
 
       res.status(200).send(user);
