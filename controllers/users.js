@@ -17,10 +17,16 @@ function getUser(req, res) {
   const { userId } = req.params;
 
   User.findById(userId)
-    .then((user) => res.status(200).send(user))
-    .catch((err) => {
-      if (err.name === "CastError") {
+    .then((user) => {
+      if (!user) {
         res.status(404).send(castErrorMessage);
+      }
+
+      res.status(200).send(user);
+    })
+    .catch((err) => {
+      if (err.name === "ValidationError") {
+        res.status(400).send(validationErrorMessage);
         return;
       }
 
