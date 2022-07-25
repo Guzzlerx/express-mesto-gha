@@ -1,58 +1,68 @@
 const Card = require('../models/card');
-const {
-  validationErrorMessage,
-  findErrorMessage,
-  serverErrorMessage,
-  serverErrorStatusCode,
-  findErrorStatusCode,
-  validationErrorStatusCode,
-} = require('../utils/error');
 
-function getCards(req, res) {
+const {
+  ServerError,
+  ValidationError,
+  NotFoundError,
+  ForbiddenError,
+} = require('../errors/index');
+
+function getCards(req, res, next) {
   Card.find({})
+    .populate('sads')
     .then((cards) => res.status(200).send(cards))
     .catch(() => {
-      res.status(serverErrorStatusCode).send(serverErrorMessage);
+      next(new ServerError());
     });
 }
 
-function createCard(req, res) {
+function createCard(req, res, next) {
   const { name, link } = req.body;
 
   Card.create({ name, link, owner: req.user })
     .then((card) => res.status(201).send(card))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(validationErrorStatusCode).send(validationErrorMessage);
+        next(new ValidationError());
         return;
       }
 
-      res.status(serverErrorStatusCode).send(serverErrorMessage);
+      next(new ServerError());
     });
 }
 
-function deleteCard(req, res) {
+function deleteCard(req, res, next) {
   const { cardId } = req.params;
 
-  Card.findByIdAndRemove(cardId)
-    .orFail(new Error('Not found'))
-    .then(() => res.send({ message: 'Пост удалён' }))
+  Card.findById(cardId)
+    .orFail(new Error('Not Found'))
+    .then((card) => {
+      if (card.owner.toString() === req.user._id) {
+        Card.findByIdAndRemove(card._id).then(() => {
+          res.send({ message: 'Пост удалён' });
+        });
+
+        return;
+      }
+
+      next(new ForbiddenError());
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(validationErrorStatusCode).send(validationErrorMessage);
+        next(new ValidationError());
         return;
       }
 
-      if (err.message === 'Not found') {
-        res.status(findErrorStatusCode).send(findErrorMessage);
+      if (err.message === 'Not Found') {
+        next(new NotFoundError());
         return;
       }
 
-      res.status(serverErrorStatusCode).send(serverErrorMessage);
+      next(new ServerError());
     });
 }
 
-function likeCard(req, res) {
+function likeCard(req, res, next) {
   const { cardId } = req.params;
 
   Card.findByIdAndUpdate(
@@ -60,24 +70,24 @@ function likeCard(req, res) {
     { $addToSet: { likes: req.user._id } }, // добавляем пользователя, если его еще там нет
     { new: true }
   )
-    .orFail(new Error('Not found'))
+    .orFail(new Error('Not Found'))
     .then((card) => res.status(200).send(card))
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(validationErrorStatusCode).send(validationErrorMessage);
+        next(new ValidationError());
         return;
       }
 
-      if (err.message === 'Not found') {
-        res.status(findErrorStatusCode).send(findErrorMessage);
+      if (err.message === 'Not Found') {
+        next(new NotFoundError());
         return;
       }
 
-      res.status(serverErrorStatusCode).send(serverErrorMessage);
+      next(new ServerError());
     });
 }
 
-function dislikeCard(req, res) {
+function dislikeCard(req, res, next) {
   const { cardId } = req.params;
 
   Card.findByIdAndUpdate(
@@ -85,20 +95,20 @@ function dislikeCard(req, res) {
     { $pull: { likes: req.user._id } }, // убрали пользователя
     { new: true }
   )
-    .orFail(new Error('Not found'))
+    .orFail(new Error('Not Found'))
     .then((card) => res.status(200).send(card))
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(validationErrorStatusCode).send(validationErrorMessage);
+        next(new ValidationError());
         return;
       }
 
-      if (err.message === 'Not found') {
-        res.status(findErrorStatusCode).send(findErrorMessage);
+      if (err.message === 'Not Found') {
+        next(new NotFoundError());
         return;
       }
 
-      res.status(serverErrorStatusCode).send(serverErrorMessage);
+      next(new ServerError());
     });
 }
 

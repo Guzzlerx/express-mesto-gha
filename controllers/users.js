@@ -1,60 +1,89 @@
-const User = require('../models/user');
-const {
-  validationErrorMessage,
-  findErrorMessage,
-  serverErrorMessage,
-  serverErrorStatusCode,
-  findErrorStatusCode,
-  validationErrorStatusCode,
-} = require('../utils/error');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
-function getUsers(req, res) {
+const User = require('../models/user');
+
+const {
+  NotFoundError,
+  ServerError,
+  ValidationError,
+  ConflictError,
+  AuthorizationError,
+} = require('../errors/index');
+
+function getUsers(req, res, next) {
   User.find({})
     .then((data) => res.status(200).send(data))
     .catch(() => {
-      res.status(serverErrorStatusCode).send(serverErrorMessage);
+      next(new ServerError());
     });
 }
 
-function getUser(req, res) {
+function getUser(req, res, next) {
   const { userId } = req.params;
 
   User.findById(userId)
-    .orFail(new Error('Not found'))
+    .orFail(new Error('Not Found'))
     .then((user) => {
       res.status(200).send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(validationErrorStatusCode).send(validationErrorMessage);
+        next(new ValidationError());
         return;
       }
 
-      if (err.message === 'Not found') {
-        res.status(findErrorStatusCode).send(findErrorMessage);
+      if (err.message === 'Not Found') {
+        next(new NotFoundError());
         return;
       }
 
-      res.status(serverErrorStatusCode).send(serverErrorMessage);
+      next(new ServerError());
     });
 }
 
-function createUser(req, res) {
-  const { name, about, avatar } = req.body;
+function getCurrentUser(req, res) {
+  res.status(200).send(req.user);
+}
 
-  User.create({ name, about, avatar })
-    .then((user) => res.status(201).send(user))
+function createUser(req, res, next) {
+  const { name, about, avatar, email, password } = req.body;
+
+  if (password.length < 5) {
+    next(new ValidationError());
+    return;
+  }
+
+  bcrypt
+    .hash(password, 10)
+    .then((hashedPassword) =>
+      User.create({
+        name,
+        about,
+        avatar,
+        email,
+        password: hashedPassword,
+      })
+    )
+    .then((user) => {
+      res.status(201).send(user);
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(validationErrorStatusCode).send(validationErrorMessage);
+        next(new ValidationError());
         return;
       }
 
-      res.status(serverErrorStatusCode).send(serverErrorMessage);
+      if (err.name === 'MongoServerError') {
+        next(new ConflictError());
+        return;
+      }
+
+      next(new ServerError());
     });
 }
 
-function updateUserInfo(req, res) {
+function updateUserInfo(req, res, next) {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(
@@ -65,20 +94,20 @@ function updateUserInfo(req, res) {
     .then((user) => res.status(200).send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(validationErrorStatusCode).send(validationErrorMessage);
+        next(new ValidationError());
         return;
       }
 
       if (err.name === 'CastError') {
-        res.status(findErrorStatusCode).send(findErrorMessage);
+        next(new NotFoundError());
         return;
       }
 
-      res.status(serverErrorStatusCode).send(serverErrorMessage);
+      next(new ServerError());
     });
 }
 
-function updateUserAvatar(req, res) {
+function updateUserAvatar(req, res, next) {
   const { avatar } = req.body;
 
   User.findByIdAndUpdate(
@@ -92,16 +121,49 @@ function updateUserAvatar(req, res) {
     .then((user) => res.status(200).send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(validationErrorStatusCode).send(validationErrorMessage);
+        next(new ValidationError());
         return;
       }
 
       if (err.name === 'CastError') {
-        res.status(findErrorStatusCode).send(findErrorMessage);
+        next(new NotFoundError());
         return;
       }
 
-      res.status(serverErrorStatusCode).send(serverErrorMessage);
+      next(new ServerError());
+    });
+}
+
+function login(req, res, next) {
+  const { email, password } = req.body;
+
+  User.findOne({ email })
+    .select('+password')
+    .then((user) => {
+      if (!user) {
+        next(new AuthorizationError());
+        return;
+      }
+
+      bcrypt
+        .compare(password, user.password)
+        .then((matched) => {
+          if (!matched) {
+            next(new AuthorizationError());
+            return;
+          }
+
+          const token = jwt.sign({ _id: user._id }, 'secret-key', {
+            expiresIn: '7d',
+          });
+          res
+            .cookie('token', token, {
+              maxAge: 360000,
+              httpOnly: true,
+            })
+            .send({ message: 'Токен успешно отправлен' });
+        })
+        .catch(() => next(new ServerError()));
     });
 }
 
@@ -111,4 +173,6 @@ module.exports = {
   createUser,
   updateUserInfo,
   updateUserAvatar,
+  login,
+  getCurrentUser,
 };
