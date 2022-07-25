@@ -9,7 +9,6 @@ const {
 
 function getCards(req, res, next) {
   Card.find({})
-    .populate('sads')
     .then((cards) => res.status(200).send(cards))
     .catch(() => {
       next(new ServerError());

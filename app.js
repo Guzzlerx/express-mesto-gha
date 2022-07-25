@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const { errors } = require('celebrate');
 
 const usersRouter = require('./routes/users');
 const cardsRouter = require('./routes/cards');
@@ -25,6 +26,8 @@ app.use('/', cardsRouter);
 app.use('/', (req, res) => {
   res.status(404).send({ message: 'По указанному пути ничего не найдено.' });
 });
+
+app.use(errors());
 
 app.use(handleError);
 
