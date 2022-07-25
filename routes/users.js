@@ -28,12 +28,19 @@ router.post(
 router.post(
   '/signup',
   celebrate({
-    body: Joi.object().keys({
-      email: Joi.string()
-        .required()
-        .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net', 'ru'] } }),
-      password: Joi.string().required().min(5),
-    }),
+    body: Joi.object()
+      .keys({
+        email: Joi.string()
+          .required()
+          .email({
+            minDomainSegments: 2,
+            tlds: { allow: ['com', 'net', 'ru'] },
+          }),
+        password: Joi.string().required().min(5),
+        about: Joi.string().min(2).max(30),
+        avatar: Joi.string(),
+      })
+      .unknown(true),
   }),
   createUser
 );

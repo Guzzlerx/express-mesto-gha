@@ -66,7 +66,8 @@ function createUser(req, res, next) {
       })
     )
     .then((user) => {
-      res.status(201).send(user);
+      const { name, about, avatar, email } = user; // eslint-disable-line
+      res.status(201).send({ name, about, avatar, email });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -161,6 +162,7 @@ function login(req, res, next) {
               maxAge: 360000,
               httpOnly: true,
             })
+            .status(200)
             .send({ message: 'Токен успешно отправлен' });
         })
         .catch(() => next(new ServerError()));
