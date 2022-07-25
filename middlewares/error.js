@@ -1,4 +1,4 @@
-function handleError(err, req, res, next) {
+function handleError(err, req, res, next) { //eslint-disable-line
   const { statusCode = 500, message } = err;
 
   res

@@ -12,7 +12,6 @@ const {
 } = require('../errors/index');
 
 function getUsers(req, res, next) {
-  console.log(req.params, req.query);
   User.find({})
     .then((data) => res.status(200).send(data))
     .catch(() => {
@@ -74,15 +73,8 @@ function createUser(req, res, next) {
 
   bcrypt
     .hash(password, 10)
-    .then((hashedPassword) =>
-      User.create({
-        name,
-        about,
-        avatar,
-        email,
-        password: hashedPassword,
-      })
-    )
+    .then((hashedPassword) => User.create({ name, about, avatar, email, password: hashedPassword,
+    }))
     .then((user) => {
       const { name, about, avatar, email } = user; // eslint-disable-line
       res.status(201).send({ name, about, avatar, email });

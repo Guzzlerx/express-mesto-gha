@@ -56,7 +56,7 @@ router.get(
   '/users/:userId',
   celebrate({
     params: Joi.object().keys({
-      userId: Joi.string().alphanum().min(5),
+      userId: Joi.string().alphanum().min(10),
     }),
   }),
   getUser
