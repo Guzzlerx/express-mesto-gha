@@ -56,7 +56,7 @@ router.get(
   '/users/:userId',
   celebrate({
     params: Joi.object().keys({
-      userId: Joi.string().alphanum(),
+      userId: Joi.string().alphanum().min(5),
     }),
   }),
   getUser
@@ -75,7 +75,9 @@ router.patch(
   '/users/me/avatar',
   celebrate({
     body: Joi.object().keys({
-      avatar: Joi.string(),
+      avatar: Joi.string().regex(
+        /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/ // eslint-disable-line
+      ),
     }),
   }),
   updateUserAvatar

@@ -12,6 +12,7 @@ const {
 } = require('../errors/index');
 
 function getUsers(req, res, next) {
+  console.log(req.params, req.query);
   User.find({})
     .then((data) => res.status(200).send(data))
     .catch(() => {
