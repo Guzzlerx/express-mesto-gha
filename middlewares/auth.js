@@ -1,14 +1,13 @@
 const jwt = require('jsonwebtoken');
 
 function verifyToken(req, res, next) {
-  const { authorization } = req.headers;
+  const { token } = req.cookies;
 
-  if (!authorization) {
+  if (!token) {
     res.status(401).send({ message: 'Необходима авторизация.' });
     return;
   }
 
-  const token = authorization.replace('Bearer ', '');
   let payload;
 
   try {

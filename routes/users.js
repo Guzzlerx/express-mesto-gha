@@ -48,11 +48,10 @@ router.post(
   createUser
 );
 
-router.get('/users/me', getCurrentUser);
-router.get('/users', getUsers);
-
 router.use(auth);
 
+router.get('/users/me', getCurrentUser);
+router.get('/users', getUsers);
 router.get(
   '/users/:userId',
   celebrate({
