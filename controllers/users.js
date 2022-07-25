@@ -42,8 +42,25 @@ function getUser(req, res, next) {
     });
 }
 
-function getCurrentUser(req, res) {
-  res.status(200).send(req.user);
+function getCurrentUser(req, res, next) {
+  User.findById(req.user._id)
+    .orFail(new Error('Not Found'))
+    .then((user) => {
+      res.status(200).send(user);
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new ValidationError());
+        return;
+      }
+
+      if (err.message === 'Not Found') {
+        next(new NotFoundError());
+        return;
+      }
+
+      next(new ServerError());
+    });
 }
 
 function createUser(req, res, next) {
@@ -159,7 +176,7 @@ function login(req, res, next) {
           });
           res
             .cookie('token', token, {
-              maxAge: 360000,
+              maxAge: 3600000,
               httpOnly: true,
             })
             .status(200)
