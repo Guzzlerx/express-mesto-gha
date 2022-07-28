@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 
 const User = require('../models/user');
 
+const { TOKEN_KEY = 'hidden-key' } = process.env;
+
 const {
   NotFoundError,
   ServerError,
@@ -164,7 +166,7 @@ function login(req, res, next) {
             return;
           }
 
-          const token = jwt.sign({ _id: user._id }, 'secret-key', {
+          const token = jwt.sign({ _id: user._id }, TOKEN_KEY, {
             expiresIn: '7d',
           });
           res

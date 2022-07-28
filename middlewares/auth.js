@@ -1,19 +1,22 @@
 const jwt = require('jsonwebtoken');
+const { AuthorizationError } = require('../errors/index');
+
+const { TOKEN_KEY = 'hidden-key' } = process.env;
 
 function verifyToken(req, res, next) {
   const { token } = req.cookies;
 
   if (!token) {
-    res.status(401).send({ message: 'Необходима авторизация.' });
+    next(new AuthorizationError());
     return;
   }
 
   let payload;
 
   try {
-    payload = jwt.verify(token, 'secret-key');
+    payload = jwt.verify(token, TOKEN_KEY);
   } catch (err) {
-    res.status(401).send({ message: 'Необходима авторизация.' });
+    next(new AuthorizationError());
   }
 
   req.user = payload;
