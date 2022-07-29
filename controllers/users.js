@@ -11,7 +11,7 @@ const {
   ValidationError,
   ConflictError,
   AuthorizationError,
-} = require('../errors/index');
+} = require('../errors');
 
 function getUsers(req, res, next) {
   User.find({})

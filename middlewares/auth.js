@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { AuthorizationError } = require('../errors/index');
+const { AuthorizationError } = require('../errors');
 
 const { TOKEN_KEY = 'hidden-key' } = process.env;
 

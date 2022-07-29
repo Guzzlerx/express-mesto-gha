@@ -5,7 +5,7 @@ const {
   ValidationError,
   NotFoundError,
   ForbiddenError,
-} = require('../errors/index');
+} = require('../errors');
 
 function getCards(req, res, next) {
   Card.find({})

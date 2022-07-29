@@ -8,10 +8,9 @@ const { errors } = require('celebrate');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 
-const usersRouter = require('./routes/users');
-const cardsRouter = require('./routes/cards');
+const { usersRouter, cardsRouter } = require('./routes');
 const handleError = require('./middlewares/error');
-const { NotFoundError } = require('./errors/index');
+const { NotFoundError } = require('./errors');
 
 const { PORT = 3000 } = process.env; // eslint-disable-line
 
